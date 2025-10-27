@@ -1,0 +1,219 @@
+# controllers/config/experiment_config.yaml
+# This file contains all parameters required by the controller library.
+
+#===============================================================================
+# Experiment Configuration (shared across controllers)
+#===============================================================================
+# DEPRECATED: controllers_to_test parameter - NO LONGER USED (removed for portability)
+
+# Options: "kinematic_single_track", "differential_drive", "simple_boat"
+dynamics_model: "kinematic_single_track"
+# dynamics_model: "simple_boat" # same as differential_drive
+
+# global map parameters
+global_map_resolution: 0.05   # global map grid resolution (meters/cell)
+
+# Planning Parameters
+horizon_T: 4.0                # Planning horizon in seconds
+dt: 0.10                      # Simulation timestep (affects all controllers)
+seed: 2025                    # Random seed for reproducibility
+
+# Sampling parameters 
+num_rollouts: 512            # Number of control rollouts/samples
+num_vis_rollouts: 1000         # Number of rollouts for visualization
+initialization_budget_ratio: 0.5  # Fraction of sampling budget allocated to CUniform initialization (0.5 = 50%)
+
+# Vehicle parameters 
+vehicle_length: 0.57          # Vehicle length in meters
+vehicle_width: 0.3            # Vehicle width in meters
+vehicle_wheelbase: 0.48       # Wheelbase in meters (alphatruck)
+
+# Control constraints
+# If min_v != max_v, variable_velocity_mode is active.
+vrange: [0.5, 1.5]            # [min_v, max_v] (m/s)
+
+# Legacy 'wrange' for reference, it's steering angle range for KST dynamics
+# wrange: [-0.524, 0.524]       # [min_steering_angle, max_steering_angle] (radians)
+# wrange: [-0.401, 0.401]       # [min_steering_angle, max_steering_angle] (radians)
+
+# KST Dynamics Limits: Steering angle range [min_delta, max_delta] (radians)
+steering_angle_range: [-0.524, 0.524]
+
+# Differential Drive/Boat Dynamics Limits: Angular velocity range [min_omega, max_omega] (rad/s)
+# Increase these limits to allow the boat model to achieve sharper turns.
+angular_velocity_range: [-1.5, 1.5] 
+
+# Cost function weights (Tuning parameters)
+terminal_weight: 1.0          # Weight for terminal cost
+obs_penalty: 1000.0           # Penalty for obstacle collision
+dist_weight: 1.0             # Weight for distance-to-goal cost
+# action_cost_weight: [30.0, 50.0] # Weight for action cost, assigned w.r.t to the maximum action change
+action_cost_weight: [3.0, 5.0] # Weight for action cost, assigned w.r.t to the maximum action change
+goal_tolerance: 0.30          # Goal tolerance for all controllers (meters)
+
+# A sensitivity threshold defining a "hard collision" for the trajectory evaluation process.
+# The planner calculates a summed cost by sampling the inflated_costmap under the robot's footprint grid
+# If this summed cost exceeds (footprint_area * collision_occupancy_ratio), the trajectory is heavily penalized. 
+# A lower value creates a more cautious planner that avoids inflation zones, 
+# a higher value allows for more aggressive navigation closer to obstacles.
+collision_occupancy_ratio: 0.5
+
+# The side length (in grid cells) of the square area used for cost evaluation within the planner.
+# This footprint is used to sample the inflated_costmap to calculate obstacle proximity and collision
+# costs for the thousands of candidate trajectories. It is NOT used for the final physical collision
+# check of the robot's actual state, which is handled separately by the environment manager
+# E.g., a value of 7 means a 7x7 grid is checked.
+robot_footprint_size: 9
+
+# Local Costmap Parameters (CRITICAL: Must match the scan_to_costmap node output!)
+local_costmap_size: 241         # Local costmap size in grid cells
+# local_costmap_size: 121         # Local costmap size in grid cells
+local_costmap_resolution: 0.05  # Local costmap resolution in meters/cell
+lidar_max_range: 30.0           # Maximum range to consider from LiDAR in meters
+# REAL ROBOT ONLY PARAMETER
+robot_body_filter_radius: 0.2   # Radius around robot center to ignore LiDAR points (meters)
+
+#===============================================================================
+# Visualization Configuration
+#===============================================================================
+visualization:
+  enabled: True                 # Master switch
+  visualize_trajectories: True  # Enable/disable trajectory visualization (saves significant time if false)
+  visualize_goal: True          # Enable/disable local goal visualization
+  skip_mppi_samples: False      # Skip MPPI perturbed samples, only show UGE trajectories + best/optimal trajectories
+
+#===============================================================================
+# Obstacle Inflation Parameters
+#===============================================================================
+
+# --- For Planners' Cost Function Evaluation ---
+# The distance (in grid cells) from an obstacle over which a cost penalty is applied.
+# This creates a "soft" cost gradient that encourages the MPPI planner to find
+# smoother, safer paths that stay away from walls.
+# NOTE: Due to the linear decay formula used, this must be at least 2 to create a
+# cost greater than zero in the first adjacent free-space cell.
+inflation_radius: 10            # Obstacle inflation radius in grid cells
+
+# The maximum cost value at the immediate boundary of an obstacle. The cost will
+# then decay linearly from this value down to 0 at the inflation_radius.
+max_inflation_value: 1.0
+
+# --- For the Neural Network's SDF Generation (Hard Boundary Expansion) ---
+# The number of cells by which to expand obstacles before generating the SDF.
+# This uses binary dilation to create a "hard" safety margin, effectively
+# "thickening" the walls. This is a critical preprocessing step for the NN model.
+# NOTE: Setting this to at least 1 can help close small gaps in LiDAR-generated maps
+sdf_inflation_cells: 5
+
+#===============================================================================
+# CONTROLLER-SPECIFIC CONFIGURATIONS
+#===============================================================================
+
+# ========================================
+# C-UNIFORM CONTROLLER CONFIGURATION
+# ========================================
+cuniform_controller:
+  # --- TensorRT Optimization ---
+  # Enable TensorRT optimization (requires TensorRT installed on the Jetson)
+  # Models will be optimized on the first run (takes time) and cached
+  use_tensorrt: True
+  # Use FP16 precision. Highly recommended for maximum performance on Jetson Orin
+  tensorrt_fp16: True
+
+  # Controller type
+  # 0: Unsupervised NN C-Uniform, 1: Supervised Map conditioned NN C-Uniform
+
+  # Neural network parameters
+
+  # Paths are relative to the 'resource' directory of the 'controllers' package.
+  # The local_planner_node resolves these paths at runtime.
+  resource_package: "controllers"
+  map_conditioned_model_path: "map_conditioned_cuniform_models_v2.5/best_model.pth"
+  feature_extractor_path: "map_conditioned_cuniform_models_v2.5/best_feature_extractor.pth"
+  unsupervised_cuniform_model_path: "unsupervised_cuniform_model_v2.5/MapAct_best_model_single_env.pt"
+
+
+  # Action space discretization parameters, used to generate the discrete action space
+  num_steering_angle: 31          # Number of discrete steering angle values
+  num_a: 1                        # Number of discrete acceleration values
+  arange: [0.0, 0.0]              # [min_acceleration, max_acceleration] (m/s^2)
+
+# ========================================
+# MPPI CONTROLLER CONFIGURATION
+# ========================================
+mppi_controller:
+  # FOR ROS2, we use the default value of -1, which means the controller
+  # will use the one based on the one set in the launch file.
+  mppi_type: -1            # 0: Normal distribution, 1: NLN (Normal Log-Normal) 
+
+  # Control noise parameters
+  # If vrange is variable, u_std[0] (velocity noise) should ideally be > 0.
+  u_std: [0.2, 0.10]       # Standard deviation for [linear_vel, angular_vel] noise
+  # u_std: [0.5, 0.087266] 
+  # u_std: [1.0, 0.174532]
+
+  # Noise std for DiffDrive/Boat [vel_std, angular_velocity_std (rad/s)]
+  # This key MUST exist if using differential_drive or simple_boat with MPPI.
+  u_std_angular_vel: [0.1, 0.5]
+
+  # MPPI algorithm parameters
+  # lambda_weight: 0.01      # Temperature parameter for importance weighting
+  lambda_weight: 1.0      # Temperature parameter for importance weighting
+  num_opt: 1              # Number of optimization iterations per solve 
+
+# ========================================
+# UGE-MPC CONTROLLER CONFIGURATION
+# ========================================
+uge_mpc_controller:
+  # --- UGE-TO Initialization Stage (Algorithm 1) ---
+  uge_to:
+    # N: Number of diverse trajectories maintained
+    num_trajectories: 12 # (self.trajs in Numba)
+    # M: Candidates generated per trajectory during refinement
+    candidates_per_traj: 8 # (self.candidates_per_traj in Numba)
+    
+    # Iterations for refinement
+    iterations: 6 # (self.iters in Numba)
+    
+    # Optimization parameters
+    step_interval: 8    # Calculate Hellinger distance every K steps
+    # step_interval: 2    # Calculate Hellinger distance every K steps
+    decay_sharpness: 2.0 # Controls the noise decay schedule
+
+  # --- Noise Parameters (Crucial for UGE-TO) ---
+  noise:
+    # R (Sigma_u): Action sampling covariance (std dev) [v_std, delta_std]
+    # Used for sampling perturbations in UGE-TO and MPPI.
+    # Example matching Numba R_val=[0.5, 5.0 deg] (R_val in Numba seems to be STD)
+    # R_std: [0.5, 0.087266] 
+    R_std: [1.0, 0.174532]
+    
+    # Q: Propagation input noise covariance (std dev) [v_std, delta_std]
+    # Used in the EKF update (B Q B^T).
+    # Example matching Numba Q_val=[0.05, 1.0 deg] (Q_val in Numba seems to be STD)
+    # Q_std: [0.05, 0.017453] 
+    Q_std: [0.10, 0.034906] 
+    
+    # Sigma0: Initial state covariance (std dev) [x_std, y_std, theta_std]
+    # Example matching Numba Sigma0_val=[0.001, 0.001, 0.001]
+    Sigma0_std: [0.001, 0.001, 0.017453] 
+
+  # --- MPPI Refinement Stage (Algorithm 2, Stage 3) ---
+  mppi:
+    # L: Number of rollouts for MPPI refinement
+    num_rollouts: 256 # (num_rollouts in Numba generate_rollouts call)
+    
+    # Configuration for the MPPI refiner instance
+    # This structure mirrors the standard 'mppi_controller' config block
+    refinement_config:
+      mppi_type: 0  # Standard Gaussian MPPI
+      
+      # Control noise parameters for MPPI stage (Sigma_u).
+      # Typically linked to R_std defined above.
+      # u_std: [0.5, 0.087266] 
+      u_std: [1.0, 0.174532]
+
+      # MPPI algorithm parameters
+      # Example matching Numba lambda_weight=0.001 in solve_mppi_only_with_total_cost
+      lambda_weight: 0.001
+      num_opt: 1
