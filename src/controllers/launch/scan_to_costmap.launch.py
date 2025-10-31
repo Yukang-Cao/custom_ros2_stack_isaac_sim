@@ -11,7 +11,7 @@ from launch_ros.actions import Node
 def generate_launch_description():
     """
     Launch file for real scan-to-costmap conversion with dummy goal.
-    This launches the costmap processor node (expects real LiDAR data on /scan)
+    This launches the costmap processor node (expects real LiDAR data on /laser_scan)
     and a dummy goal publisher for testing the controller.
     """
     # Get the default config file path

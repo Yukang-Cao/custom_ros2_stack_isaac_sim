@@ -149,7 +149,7 @@ class DummyLocalCostmapPublisher(Node):
         """Publish all dummy costmaps."""
         header = Header()
         header.stamp = self.get_clock().now().to_msg()
-        header.frame_id = "base_link"  # Local costmap is in robot frame
+        header.frame_id = "Chassis"  # Local costmap is in robot frame
         
         # Publish all costmaps
         self.publish_occupancy_grid(self.binary_costmap, header, self.binary_costmap_pub)

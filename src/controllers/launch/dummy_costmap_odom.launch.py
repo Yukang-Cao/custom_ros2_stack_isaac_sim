@@ -78,7 +78,7 @@ def generate_launch_description():
                 'config_file_path': config_file_path,
                 'control_frequency': control_frequency,
                 'map_frame': 'map',
-                'base_link_frame': 'base_link',
+                'base_link_frame': 'Chassis',
                 'use_external_sdf': False,  # Set to False for dummy testing without real SDF
                 'seed': 2025,
             }]

@@ -110,7 +110,7 @@ class CostmapProcessorNode(Node):
             # Step 4: Publish all costmaps
             header = Header()
             header.stamp = self.get_clock().now().to_msg()
-            header.frame_id = "base_link"  # Local costmap is in robot frame
+            header.frame_id = "Chassis"  # Local costmap is in robot frame
             
             # Use the standard publisher for 0-1 costmaps
             # self.publish_occupancy_grid(binary_costmap, header, self.binary_costmap_pub)
@@ -149,18 +149,10 @@ class CostmapProcessorNode(Node):
             distance_from_robot = np.sqrt(obs_x_robot**2 + obs_y_robot**2)
             if distance_from_robot < self.robot_body_radius:
                 continue
-
-            # # Apply 90-degree clockwise rotation to align with visualization
-            # # NOTE: ideally this should be done in URDF, now it's a hack
-            # # New X = Old Y, New Y = -Old X
-            rotated_x = obs_y_robot
-            rotated_y = -obs_x_robot
             
             # Use standard ROS coordinate frames (REP-103: X-forward, Y-left)
-            # grid_x = int(center + obs_x_robot / self.resolution)
-            # grid_y = int(center + obs_y_robot / self.resolution) # ROS Coordinates
-            grid_x = int(center + rotated_x / self.resolution)
-            grid_y = int(center + rotated_y / self.resolution) # ROS Coordinates
+            grid_x = int(center + obs_x_robot / self.resolution)
+            grid_y = int(center + obs_y_robot / self.resolution)
             
             if 0 <= grid_x < self.local_costmap_size and 0 <= grid_y < self.local_costmap_size:
                 binary_costmap[grid_y, grid_x] = 1.0

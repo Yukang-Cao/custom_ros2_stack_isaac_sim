@@ -15,7 +15,7 @@ Complete control pipeline: sensor preprocessing, trajectory planning, and testin
 
 ### Perception Preprocessing  
 **`costmap_processor_node`** - Scan to costmap conversion  
-- **In**: `/scan`  
+- **In**: `/laser_scan`  
 - **Out**: `/local_costmap_binary_raw`, `/local_costmap_inflated`, `/local_costmap_sdf`
 
 ### Testing Utilities

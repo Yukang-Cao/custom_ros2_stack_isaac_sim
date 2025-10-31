@@ -20,17 +20,17 @@ class DummyGoalPublisher(Node):
         self.get_logger().info("Dummy Goal Publisher initialized")
 
     def publish_goal(self):
-        """Publish a dummy goal pose in base_link frame for testing."""
+        """Publish a dummy goal pose in Chassis frame for testing."""
         goal_msg = PoseStamped()
         goal_msg.header.stamp = self.get_clock().now().to_msg()
         # goal_msg.header.frame_id = "world"
-        goal_msg.header.frame_id = "base_link"
+        goal_msg.header.frame_id = "Chassis"
         # goal_msg.header.frame_id = "odom"
         
         # Create different dummy goal positions for testing
         goals = [
-            # (20.0, 0.0)
-            (0.0, 3.0)
+            (20.0, 0.0)
+            # (0.0, 5.0)
             # (30.0, 0.0)
             # (-10.0, 0.0)
         ]

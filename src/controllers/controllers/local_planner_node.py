@@ -52,7 +52,7 @@ class LocalPlannerNode(Node):
                 ('config_file_path', os.path.join(get_package_share_directory('controllers'), 'config', 'experiment_config.yaml')),
                 ('control_frequency', 20.0),
                 ('map_frame', 'map'),
-                ('base_link_frame', 'base_link'),
+                ('base_link_frame', 'Chassis'),
                 ('use_external_sdf', True), # Use SDF from scan_to_costmap package
                 ('seed', 2025)
             ]
@@ -494,7 +494,7 @@ class LocalPlannerNode(Node):
         if control_type == "steering_angle":
             # KST Model: Input is steering angle (delta)
             delta = control_input_2
-            omega = -delta 
+            omega = delta
             # # Convert steering angle to angular velocity (omega) for the Twist message
             # # omega = v * tan(delta) / L
             # L = self.controller.wheelbase
