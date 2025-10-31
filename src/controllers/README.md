@@ -25,20 +25,18 @@ Complete control pipeline: sensor preprocessing, trajectory planning, and testin
 
 ## Launch Files
 
-**`controllers.launch.py`**: Controller only  
-**`scan_to_costmap.launch.py`**: Real LiDAR processing + dummy goal  
-**`dummy_costmap_odom.launch.py`**: Dummy costmap + dummy odom + dummy goal
+**`isaac_sim_navigation_suite.launch.py`** - Complete stack for Isaac Sim  
+**`controllers.launch.py`** - Controller only  
+**`scan_to_costmap.launch.py`** - LiDAR processing + dummy goal  
+**`dummy_costmap_odom.launch.py`** - Full dummy environment
 
 ## Usage
 
-Via tmuxinator (recommended):
+Isaac Sim:
 ```bash
-tmuxinator start -p tmux/controller/.tmuxinator.yaml
+ros2 launch controllers isaac_sim_navigation_suite.launch.py
+ros2 launch controllers isaac_sim_navigation_suite.launch.py controller_type:=uge_mpc_pytorch
 ```
-
-Edit `tmux/controller/.tmuxinator.yaml` to switch between:
-- Real LiDAR mode: `scan_to_costmap.launch.py`
-- Dummy mode: `dummy_costmap_odom.launch.py` (see commented line)
 
 ## Configuration
 

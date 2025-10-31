@@ -11,7 +11,7 @@ class DummyOdomPublisher(Node):
         super().__init__('dummy_odom_publisher')
         
         # Publisher for odometry
-        self.odom_pub = self.create_publisher(Odometry, '/odom', 10)
+        self.odom_pub = self.create_publisher(Odometry, '/odometry/filtered', 10)
         
         # Timer to publish odometry at high frequency
         self.timer = self.create_timer(0.02, self.publish_odom)  # 50 Hz

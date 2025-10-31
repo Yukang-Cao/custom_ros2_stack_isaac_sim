@@ -52,7 +52,7 @@ class CostmapProcessorNode(Node):
         )
         
         self.lidar_sub = self.create_subscription(
-            LaserScan, '/scan', self.lidar_callback, qos_profile)
+            LaserScan, '/laser_scan', self.lidar_callback, qos_profile)
         
         # --- TF2 Buffer and Listener ---
         self.tf_buffer = tf2_ros.Buffer()
@@ -73,16 +73,14 @@ class CostmapProcessorNode(Node):
         config_path = self.get_parameter('config_file_path').value
         if not config_path:
             self.get_logger().fatal("config_file_path parameter not set! Cannot load configuration.")
-            rclpy.try_shutdown()
-            return
+            raise RuntimeError("config_file_path parameter not set! Cannot load configuration.")
 
         try:
             with open(config_path, 'r') as file:
                 config = yaml.safe_load(file)
         except (FileNotFoundError, yaml.YAMLError) as e:
             self.get_logger().fatal(f"Error loading or parsing config file at {config_path}: {e}")
-            rclpy.try_shutdown()
-            return
+            raise RuntimeError(f"Error loading or parsing config file at {config_path}: {e}")
         
         # Extract costmap parameters
         self.local_costmap_size = config['local_costmap_size']

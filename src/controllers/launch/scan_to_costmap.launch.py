@@ -14,14 +14,18 @@ def generate_launch_description():
     This launches the costmap processor node (expects real LiDAR data on /scan)
     and a dummy goal publisher for testing the controller.
     """
+    # Get the default config file path
+    controllers_pkg_share = get_package_share_directory('controllers')
+    default_config_path = os.path.join(controllers_pkg_share, 'config', 'experiment_config.yaml')
+    
     # Launch arguments
-    config_file_path = LaunchConfiguration('config_file_path', default='')
+    config_file_path = LaunchConfiguration('config_file_path')
 
     return LaunchDescription([
         # Declare launch arguments
         DeclareLaunchArgument(
             'config_file_path',
-            default_value=config_file_path,
+            default_value=default_config_path,
             description='Path to the experiment configuration file'),
 
         # Launch the costmap processor node (expects real LiDAR data)
