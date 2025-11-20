@@ -3,7 +3,7 @@ build/
 install/
 log/
 launch/
-
+GroundingDINO/
 # --- Python ---
 __pycache__/
 *.py[cod]
