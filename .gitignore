@@ -1,1 +1,24 @@
+# --- ROS 2 Workspace Artifacts (The Big 3) ---
+build/
+install/
+log/
+launch/
+
+# --- Python ---
 __pycache__/
+*.py[cod]
+*.so
+
+# --- C++ ---
+cmake_install.cmake
+CMakeCache.txt
+Makefile
+CMakeFiles/
+
+# --- VS Code / IDE Settings ---
+.vscode/
+.idea/
+*.swp
+
+# --- OS Junk ---
+.DS_Store
