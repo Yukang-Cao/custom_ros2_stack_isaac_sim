@@ -22,3 +22,7 @@ CMakeFiles/
 
 # --- OS Junk ---
 .DS_Store
+
+# ROS 2 Debug Generated Files
+frames_*.gv
+frames_*.pdf
